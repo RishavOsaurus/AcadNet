@@ -31,6 +31,7 @@ jobs:
         with:
           node-version: lts/*
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       # 3. Install dependencies inside the frontend folder
       - name: Install frontend dependencies
