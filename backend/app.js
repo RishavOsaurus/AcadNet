@@ -55,6 +55,19 @@ const swaggerOptions = {
 
 const app = express();
 
+// Public health endpoint (always accessible) — allow any origin for this route
+app.options('/health', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.sendStatus(204);
+});
+
+app.get('/health', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -87,9 +100,8 @@ app.use("/api/v1/sysadmin", sysadminRouter);
 
 app.use(passport.initialize());
 
-// Add a simple health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
+// (health endpoint is defined above and intentionally permissive)
+
+
 
 export default app;
