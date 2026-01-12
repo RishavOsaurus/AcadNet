@@ -50,9 +50,6 @@ AcadNet is a comprehensive academic collaboration platform designed to connect s
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or later)
-- [PostgreSQL](https://www.postgresql.org/)
-- [npm](https://www.npmjs.com/)
 
 ### Installation
 
@@ -112,6 +109,22 @@ AcadNet is a comprehensive academic collaboration platform designed to connect s
    - Frontend: `http://localhost:5173`
    - Backend API: `http://localhost:3000`
    - API Documentation: `http://localhost:3000/api-docs`
+
+**Docker Compose**: quick start
+
+- Build and run the app (Postgres, backend, frontend):
+
+```bash
+docker-compose up --build
+```
+
+- Services and ports:
+   - Postgres: `5432`
+   - Backend API: `3000` (mapped to container `BACKEND_PORT`)
+   - Frontend (nginx): `80`
+
+- Notes:
+   - The compose file reads variables from `.env`. Ensure `PG_USER`, `PG_PASSWORD`, and `PG_DATABASE` are set. The compose file overrides `PG_HOST` to `db` so the backend connects to the Postgres service.
 
 ## 📁 Project Structure
 

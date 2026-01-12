@@ -1,0 +1,18 @@
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies and build frontend (repo contains frontend in `frontend/`)
+COPY package.json package-lock.json* ./
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+FROM nginx:stable-alpine
+
+# Serve built assets
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
