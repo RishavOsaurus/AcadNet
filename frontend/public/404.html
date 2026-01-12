@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Redirecting…</title>
+    <script>
+      // GitHub Pages serves this 404 for unknown paths. Fetch and render the
+      // SPA `index.html` so the app can handle the route client-side.
+      (function () {
+        const base = '/acadnet';
+        const indexPath = base.replace(/\/$/, '') + '/index.html';
+        fetch(indexPath)
+          .then(function (r) { return r.text(); })
+          .then(function (html) {
+            document.open();
+            document.write(html);
+            document.close();
+          })
+          .catch(function () {
+            // fallback: redirect to base
+            location.replace(base + '/');
+          });
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
