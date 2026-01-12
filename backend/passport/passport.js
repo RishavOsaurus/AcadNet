@@ -22,16 +22,20 @@ const getGitHubEmail = async (accessToken) => {
   }
 };
 
-passport.use(
-  new GithubStrategy(
-    {
-      clientID: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_PASSPORT,
-      callbackURL: "http://localhost:3000/api/v1/auth/github/callback",
-      scope: ["user:email"],
-      userAgent: "RishavOp"
-    },
-    async (accessToken, refreshToken, profile, done) => {
+const githubClientID = process.env.GITHUB_CLIENT_ID || process.env.CLIENT_ID;
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET || process.env.CLIENT_PASSPORT;
+
+if (githubClientID && githubClientSecret) {
+  passport.use(
+    new GithubStrategy(
+      {
+        clientID: githubClientID,
+        clientSecret: githubClientSecret,
+        callbackURL: "http://localhost:3000/api/v1/auth/github/callback",
+        scope: ["user:email"],
+        userAgent: "RishavOp"
+      },
+      async (accessToken, refreshToken, profile, done) => {
       try {
         const baseUsername = profile.username;
         const fullName = profile.displayName || "";
@@ -82,6 +86,9 @@ passport.use(
       } catch (error) {
         return done(null,false)
       }
-    }
-  )
-);
+      }
+    )
+  );
+} else {
+  console.warn('GitHub OAuth not configured; skipping GithubStrategy registration.');
+}

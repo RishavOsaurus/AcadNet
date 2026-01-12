@@ -1,4 +1,12 @@
 node_modules
+.env
+npm-debug.log
+.git
+logs
+coverage
+*.tgz
+dist
+node_modules
 dist
 frontend/node_modules
 .env

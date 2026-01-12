@@ -2,42 +2,62 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15
-    restart: always
+    image: postgres:15-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${PG_DATABASE:-acadnet}
-      POSTGRES_USER: ${PG_USER:-postgres}
-      POSTGRES_PASSWORD: ${PG_PASSWORD:-password}
+      POSTGRES_DB: acadnet
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
-    env_file: .env
+      context: ./backend
+    restart: unless-stopped
+    # Use Docker secrets so sensitive variables aren't embedded in the repo.
+    secrets:
+      - backend_env
     environment:
-      - PG_HOST=db
-      - PG_PORT=5432
-      - PG_DATABASE=${PG_DATABASE}
-      - PG_USER=${PG_USER}
-      - PG_PASSWORD=${PG_PASSWORD}
-      - BACKEND_PORT=${BACKEND_PORT:-3000}
-    depends_on:
-      - db
+      PG_HOST: db
+      PG_PORT: 5432
+      PG_DATABASE: acadnet
+      PORT: 3000
+      NODE_ENV: production
     ports:
       - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./frontend
+    restart: unless-stopped
     ports:
       - "5500:80"
     depends_on:
       - backend
+    networks:
+      - app-network
 
 volumes:
-  db_data:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge
+
+secrets:
+  backend_env:
+    # Do NOT commit the actual secret file. Create a file outside version control,
+    # e.g. `./secrets/backend_env` and add `secrets/` to .gitignore. Docker Compose will
+    # mount its contents at `/run/secrets/backend_env` inside the container.
+    file: ./secrets/backend_env

@@ -21,7 +21,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 
-const indexPath = "http://localhost:5500/sample_frontend/index.html";
+const indexPath = "http://localhost:5500/";
 const dashPath = "http://localhost:5500/";
 
 const __filename = fileURLToPath(import.meta.url);
