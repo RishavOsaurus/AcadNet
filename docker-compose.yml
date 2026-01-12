@@ -20,12 +20,13 @@ services:
     build:
       context: ./backend
     restart: unless-stopped
-    # Use Docker secrets so sensitive variables aren't embedded in the repo.
-    secrets:
-      - backend_env
+    env_file:
+      - ./backend/.env
     environment:
+      # Ensure the backend connects to the Compose Postgres service
       PG_HOST: db
       PG_PORT: 5432
+      # Override DB credentials from .env if desired
       PG_DATABASE: acadnet
       PORT: 3000
       NODE_ENV: production
@@ -54,10 +55,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
-secrets:
-  backend_env:
-    # Do NOT commit the actual secret file. Create a file outside version control,
-    # e.g. `./secrets/backend_env` and add `secrets/` to .gitignore. Docker Compose will
-    # mount its contents at `/run/secrets/backend_env` inside the container.
-    file: ./secrets/backend_env
