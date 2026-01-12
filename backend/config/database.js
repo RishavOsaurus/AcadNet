@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import pg from 'pg';
 
 // Use DATABASE_URL if available (for production) or construct from individual env vars
 const connectionString = process.env.DATABASE_URL || null;
@@ -12,6 +13,8 @@ const baseOptions = {
   host: process.env.PG_HOST || 'localhost',
   port: process.env.PG_PORT || 5432,
   dialect: 'postgres',
+  // Use the pg module explicitly as the dialect implementation
+  dialectModule: pg,
   logging: false,
   pool: {
     max: 5,
