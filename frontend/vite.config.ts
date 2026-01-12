@@ -1,14 +1,15 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from "path"
+import tailwindcss from "@tailwindcss/vite"
 
 // https://vitejs.dev/config/
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
-  const env = loadEnv(mode, process.cwd(), '');
-  const tailwindcss = (await import('@tailwindcss/vite')).default;
+  const env = loadEnv(mode, "../", '');
   return {
+    base: '/acadnet',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
@@ -16,7 +17,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     server: {
-      port: parseInt(env.PORT || env.FRONTEND_PORT) || 6000,
+      port: parseInt(env.FRONTEND_PORT) || 6000, 
     },
   }
 })
