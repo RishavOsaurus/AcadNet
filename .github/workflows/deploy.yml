@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout the repository
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -34,15 +34,11 @@ jobs:
 
       # 3. Install dependencies inside the frontend folder
       - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm ci  # Requires package-lock.json in frontend folder
+        run: npm ci --prefix frontend
 
       # 4. Build the frontend folder
       - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
+        run: npm run build --prefix frontend
 
       # 5. Setup GitHub Pages
       - name: Setup Pages
