@@ -1,51 +1,60 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy static content from frontend folder to GitHub Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ['main']
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      # 1. Checkout the repository
+      - name: Checkout repository
         uses: actions/checkout@v5
+
+      # 2. Setup Node.js
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Build
-        run: npm run build
+
+      # 3. Install dependencies inside the frontend folder
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci  # Requires package-lock.json in frontend folder
+
+      # 4. Build the frontend folder
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      # 5. Setup GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
+      # 6. Upload only the frontend/dist folder
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          # Upload dist folder
           path: './frontend/dist'
+
+      # 7. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
