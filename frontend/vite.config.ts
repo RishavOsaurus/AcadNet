@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: parseInt(env.FRONTEND_PORT) || 6000, 
+      port: parseInt(env.FRONTEND_PORT) || 5173,
     },
   }
 })

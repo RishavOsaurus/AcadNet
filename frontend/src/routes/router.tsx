@@ -23,6 +23,8 @@ import GroupAdmin from "@/pages/GroupAdmin";
 import Settings from "@/pages/Settings";
 import SysAdmin from "@/pages/SysAdmin";
 
+const basename = (import.meta as any).env?.BASE_URL || "/";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -127,4 +129,4 @@ export const router = createBrowserRouter([
     path: "/otpverification",
     element: <OtpFerification />,
   },
-]);
+], { basename });
