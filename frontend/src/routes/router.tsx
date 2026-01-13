@@ -23,8 +23,8 @@ import GroupAdmin from "@/pages/GroupAdmin";
 import Settings from "@/pages/Settings";
 import SysAdmin from "@/pages/SysAdmin";
 
-const rawBase = (import.meta as any).env?.BASE_URL || "/";
-const basename = rawBase === "/" ? "/" : rawBase.replace(/\/?$/, '');
+// Hard-coded basename for client router (served under '/acadnet')
+const basename = '/acadnet';
 
 export const router = createBrowserRouter([
   {
