@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, "../", '');
   return {
-    base: '/acadnet',
+  base: '/acadnet/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

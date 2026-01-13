@@ -23,7 +23,8 @@ import GroupAdmin from "@/pages/GroupAdmin";
 import Settings from "@/pages/Settings";
 import SysAdmin from "@/pages/SysAdmin";
 
-const basename = (import.meta as any).env?.BASE_URL || "/";
+const rawBase = (import.meta as any).env?.BASE_URL || "/";
+const basename = rawBase === "/" ? "/" : rawBase.replace(/\/?$/, '');
 
 export const router = createBrowserRouter([
   {
