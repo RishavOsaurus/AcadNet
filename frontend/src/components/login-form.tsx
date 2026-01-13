@@ -166,7 +166,7 @@ export function LoginForm({
             </form>
             <div className="bg-muted relative hidden md:block">
               <img
-                src="/acadnet/acadnet_login_img.png"
+                src={'./acadnet_login_img.png'}
                 alt="acadnet"
                 className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
               />
