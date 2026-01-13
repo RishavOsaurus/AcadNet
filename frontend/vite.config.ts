@@ -5,9 +5,10 @@ import tailwindcss from "@tailwindcss/vite"
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
-  // Hard-coded base path for production (served under '/acadnet/')
+  // Use relative base so generated assets use `./assets/...` which is
+  // compatible with GitHub Pages and other static hosts regardless of path.
   // NOTE: per request, avoid using environment variables in frontend.
-  const base = '/acadnet/';
+  const base = './';
 
   return {
     base,
