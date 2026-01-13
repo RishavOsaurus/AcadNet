@@ -74,21 +74,21 @@ export const teamData = [
   {
     name: "Nishan Paudel",
     role: "Support Frontend Developer",
-    image: "nishan.jpg",
+    image: "/acadnet/nishan.jpg",
   },
   {
     name: "Rushab Risal",
     role: "Lead Frontend Developer",
-    image: "rushabtest.png",
+    image: "/acadnet/rushabtest.png",
   },
   {
     name: "Anish Kumar Neupane",
     role: "Backend Developer",
-    image: "anish.jpg",
+    image: "/acadnet/anish.jpg",
   },
   {
     name: "Rishav Chapagain",
     role: "Backend Developer",
-    image: "rishav.png",
+    image: "/acadnet/rishav.png",
   },
 ];

@@ -62,7 +62,7 @@ export const Features: React.FC = () => {
           <div
             className="w-full aspect-[16/8] bg-center bg-no-repeat bg-cover rounded-xl shadow-md"
             style={{
-              backgroundImage: `url("ss1.png")`,
+              backgroundImage: `url("/acadnet/ss1.png")`,
             }}
           ></div>
           <div
