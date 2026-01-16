@@ -30,14 +30,14 @@ const __dirname = path.dirname(__filename);
 const isProd = process.env.NODE_ENV === 'production';
 
 function cookieOptions(req, { httpOnly = true, maxAge = undefined, csrf = false } = {}) {
-  // For production (cross-site) we need SameSite=None and Secure=true
+  // Force SameSite=None and Secure=true as requested (works for cross-site cookies).
   const opts = {
     httpOnly: httpOnly,
-    sameSite: isProd ? 'none' : 'lax',
-    secure: isProd ? true : false,
+    sameSite: 'none',
+    secure: true,
   };
   if (typeof maxAge === 'number') opts.maxAge = maxAge;
-  // CSRF token is readable by JS, so httpOnly=false in most flows
+  // CSRF token is readable by JS, so httpOnly=false when csrf flag is passed
   if (csrf) opts.httpOnly = false;
   return opts;
 }
