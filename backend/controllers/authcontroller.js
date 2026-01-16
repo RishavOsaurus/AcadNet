@@ -26,6 +26,21 @@ const dashPath = "https://crishav.com.np/AcadNet/";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+ 
+const isProd = process.env.NODE_ENV === 'production';
+
+function cookieOptions(req, { httpOnly = true, maxAge = undefined, csrf = false } = {}) {
+  // For production (cross-site) we need SameSite=None and Secure=true
+  const opts = {
+    httpOnly: httpOnly,
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd ? true : false,
+  };
+  if (typeof maxAge === 'number') opts.maxAge = maxAge;
+  // CSRF token is readable by JS, so httpOnly=false in most flows
+  if (csrf) opts.httpOnly = false;
+  return opts;
+}
 
 export const oAuthFail = async (req,res) =>{
     const filePath = path.join(__dirname, "../failure/fail.html");
@@ -43,26 +58,9 @@ export const oAuthCallback = async (req, res) => {
   try {
     const { accessToken, refreshToken, csrfToken } = await loginOauth(user);
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 15 * 60 * 1000
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    res.cookie("csrfToken", csrfToken, {
-      httpOnly: false,
-      sameSite: "Lax",
-      secure: false,
-      maxAge: 15 * 60 * 1000
-    });
+    res.cookie("accessToken", accessToken, cookieOptions(req, { httpOnly: true, maxAge: 15 * 60 * 1000 }));
+    res.cookie("refreshToken", refreshToken, cookieOptions(req, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }));
+    res.cookie("csrfToken", csrfToken, cookieOptions(req, { httpOnly: false, maxAge: 15 * 60 * 1000, csrf: true }));
 
     return res.redirect(dashPath);
   } catch (err) {
@@ -83,12 +81,7 @@ export const sessionChecker = async (req, res) => {
 
     if (isSession == true) {
 
-      res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      sameSite: "Lax",
-      secure: false,
-      maxAge: 15 * 60 * 1000
-    });
+      res.cookie("accessToken", accessToken, cookieOptions(req, { httpOnly: true, maxAge: 15 * 60 * 1000 }));
 
     
       return jsonRes(res, 200, true, "Ref Token is Valid");
@@ -111,28 +104,15 @@ export const refreshAccessToken = async (req, res) => {
       oldRefreshToken
     );
 
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.clearCookie("csrfToken");
+    // Clear cookies using same attributes so browser removes them correctly
+    res.clearCookie("accessToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("refreshToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("csrfToken", cookieOptions(req, { httpOnly: false, csrf: true }));
 
     // Set new tokens cookies
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure:true,
-      maxAge: 15 * 60 * 1000
-    });
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure:true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-    res.cookie("csrfToken", csrfToken, {
-      httpOnly: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie("accessToken", accessToken, cookieOptions(req, { httpOnly: true, maxAge: 15 * 60 * 1000 }));
+    res.cookie("refreshToken", refreshToken, cookieOptions(req, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }));
+    res.cookie("csrfToken", csrfToken, cookieOptions(req, { httpOnly: false, maxAge: 7 * 24 * 60 * 60 * 1000, csrf: true }));
 
     return jsonRes(res, 200, true, "Token refreshed");
   } catch (err) {
@@ -150,10 +130,10 @@ export const logoutCont = async (req, res) => {
 
     await logout(refreshToken);
 
-    // Clear cookies
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.clearCookie("csrfToken");
+    // Clear cookies using same options
+    res.clearCookie("accessToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("refreshToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("csrfToken", cookieOptions(req, { httpOnly: false, csrf: true }));
 
     return jsonRes(res, 200, true, "Logged out successfully");
   } catch (err) {
@@ -196,19 +176,8 @@ export const signup = async (req, res) => {
 
     
 
-    res.cookie("otpToken", otpToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 60 * 60 * 1000
-    });
-
-    res.cookie("username", newusername, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 60 * 60 * 1000
-    });
+    res.cookie("otpToken", otpToken, cookieOptions(req, { httpOnly: true, maxAge: 60 * 60 * 1000 }));
+    res.cookie("username", newusername, cookieOptions(req, { httpOnly: true, maxAge: 60 * 60 * 1000 }));
 
 
 
@@ -244,8 +213,8 @@ export const otpAuthChecker = async (req, res) => {
     const { otp } = req.body;
     const check = await otpChecker(username, otpToken, otp);
     if (check) {
-      res.clearCookie("username");
-      res.clearCookie("otpToken");
+      res.clearCookie("username", cookieOptions(req, { httpOnly: true }));
+      res.clearCookie("otpToken", cookieOptions(req, { httpOnly: true }));
       jsonRes(res, 200, true, "Verified");
     } else {
       jsonRes(res, err.code, false, "Not Verified");
@@ -266,26 +235,9 @@ export const login = async (req, res) => {
       password
     );
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 15 * 60 * 1000
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    res.cookie("csrfToken", csrfToken, {
-      httpOnly: false,
-      sameSite: "lax",
-      secure: true,
-      maxAge: 15 * 60 * 1000
-    });
+    res.cookie("accessToken", accessToken, cookieOptions(req, { httpOnly: true, maxAge: 15 * 60 * 1000 }));
+    res.cookie("refreshToken", refreshToken, cookieOptions(req, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }));
+    res.cookie("csrfToken", csrfToken, cookieOptions(req, { httpOnly: false, maxAge: 15 * 60 * 1000, csrf: true }));
 
     jsonRes(res, 200, true, "Login Success");
   } catch (err) {
@@ -312,19 +264,8 @@ export const resetPasswordSender = async (req, res) => {
 
     await otpSender(otp, username, email);
 
-    res.cookie("username", username, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 5 * 60 * 1000
-    });
-
-    res.cookie("resetToken", otpToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 5 * 60 * 1000
-    });
+    res.cookie("username", username, cookieOptions(req, { httpOnly: true, maxAge: 5 * 60 * 1000 }));
+    res.cookie("resetToken", otpToken, cookieOptions(req, { httpOnly: true, maxAge: 5 * 60 * 1000 }));
 
     jsonRes(res, 200, true, "OTP SENT");
   } catch (err) {
@@ -360,8 +301,8 @@ export const changePassword = async (req, res) => {
 
     await changePasswordService(username, otpToken, newPassword);
 
-    res.clearCookie("username");
-    res.clearCookie("resetToken");
+    res.clearCookie("username", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("resetToken", cookieOptions(req, { httpOnly: true }));
 
     return jsonRes(res, 200, true, "Password has been reset successfully.");
   } catch (err) {
