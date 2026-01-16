@@ -74,8 +74,19 @@ export function LoginForm({
         }else{
           console.log("failed to sent otp")
         }
-    } catch (error:any) {
-      console.log(error.response.data.message)
+    } catch (error: unknown) {
+      let msg = 'An unexpected error occurred';
+      if (error instanceof Error) {
+        msg = error.message;
+      } else if (error && typeof error === 'object' && 'response' in error) {
+        // safe access for axios-style errors
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        msg = (error as any)?.response?.data?.message ?? msg;
+      } else if (typeof error === 'string') {
+        msg = error;
+      }
+      console.log(msg);
+      setFormError(msg);
     }
   };
 
@@ -123,7 +134,7 @@ export function LoginForm({
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                     <Link
-                      to={'/forgot'}
+                      to={'/AcadNet/forgot'}
                       className="ml-auto text-sm underline-offset-2 hover:underline"
                     >
                       Forgot your password?
@@ -158,7 +169,7 @@ export function LoginForm({
                 </div>
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{" "}
-                  <a href="/register" className="underline underline-offset-4">
+                  <a href="/AcadNet/register" className="underline underline-offset-4">
                     Sign up
                   </a>
                 </div>
