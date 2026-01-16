@@ -61,7 +61,7 @@ export const oAuthCallback = async (req, res) => {
     res.cookie("accessToken", accessToken, cookieOptions(req, { httpOnly: true, maxAge: 15 * 60 * 1000 }));
     res.cookie("refreshToken", refreshToken, cookieOptions(req, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }));
     res.cookie("csrfToken", csrfToken, cookieOptions(req, { httpOnly: false, maxAge: 15 * 60 * 1000, csrf: true }));
-
+    
     return res.redirect(dashPath);
   } catch (err) {
     console.log(err);
