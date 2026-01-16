@@ -18,7 +18,16 @@ import sysadminRouter from "./routes/sysadmin.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const allowedOrigins = ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:3000", "http://127.0.0.1:3000"];
+// Allowed CORS origins. Can be configured via `CORS_ORIGINS` env var (comma-separated).
+const defaultOrigins = [
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://acad-net.vercel.app",
+  "https://crishav.com.np",
+];
+const allowedOrigins = (process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()) : defaultOrigins);
 const PORT = process.env.BACKEND_PORT || 3000;
 
 // Swagger definition
@@ -71,13 +80,16 @@ app.get('/health', (req, res) => {
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      // allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+      return callback(new Error("Not allowed by CORS: " + origin));
     },
-    credentials: true
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token'],
+    methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS']
   })
 );
 
