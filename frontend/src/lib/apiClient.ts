@@ -1,5 +1,5 @@
 // src/lib/apiClient.ts
-import axios from 'axios';
+import axios, { type AxiosRequestHeaders } from 'axios';
 
 const BASE_URL = 'https://acad-net.vercel.app/api/v1/';
 
@@ -10,9 +10,10 @@ const apiClient = axios.create({
 
 // interceptor keeps fallback in place if header already set
 apiClient.interceptors.request.use(config => {
-  if (!config.headers) config.headers = {};
-  if (!config.headers['X-CSRF-Token'] && apiClient.defaults.headers.common['X-CSRF-Token']) {
-    config.headers['X-CSRF-Token'] = apiClient.defaults.headers.common['X-CSRF-Token'];
+  if (!config.headers) config.headers = {} as AxiosRequestHeaders;
+  const headerExists = (config.headers as AxiosRequestHeaders)['X-CSRF-Token'];
+  if (!headerExists && apiClient.defaults.headers.common['X-CSRF-Token']) {
+    (config.headers as AxiosRequestHeaders)['X-CSRF-Token'] = apiClient.defaults.headers.common['X-CSRF-Token'];
   }
   return config;
 }, error => Promise.reject(error));
