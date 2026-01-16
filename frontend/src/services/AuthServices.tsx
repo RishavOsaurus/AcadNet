@@ -1,5 +1,18 @@
 import apiClient from "@/lib/apiClient";
 
+async function ensureCsrfToken() {
+  try {
+    if (apiClient.defaults.headers.common['X-CSRF-Token']) return;
+    const res = await apiClient.get('auth/csrf-token');
+    const token = res?.data?.csrfToken;
+    if (token) apiClient.defaults.headers.common['X-CSRF-Token'] = token;
+  } catch (err) {
+    // don't throw — let caller handle request failure
+    // eslint-disable-next-line no-console
+    console.warn('ensureCsrfToken failed', err);
+  }
+}
+
 export const loginAPI = async (email: string, password: string) => {
   try {
     const response = await apiClient.post<any>("auth/login", {
@@ -39,6 +52,7 @@ export const logoutAPI = async () => {
 
 export const checkSessionAPI = async () => {
   try {
+    await ensureCsrfToken();
     const response = await apiClient.post<any>("auth/checkSession");
     return { data: response.data, status: response.status };
   } catch (error) {
@@ -47,6 +61,7 @@ export const checkSessionAPI = async () => {
 };
 export const authorizedPageAPI = async () => {
   try {
+    await ensureCsrfToken();
     const response = await apiClient.get<any>("auth/authorizedPage");
     return { data: response.data, status: response.status };
   } catch (error) {
@@ -55,6 +70,7 @@ export const authorizedPageAPI = async () => {
 };
 export const refresTokenAPI = async () => {
   try {
+    await ensureCsrfToken();
     const refreshRes = await apiClient.post<any>("auth/refresh-token");
     return { data: refreshRes.data, status: refreshRes.status };
   } catch (error) {
