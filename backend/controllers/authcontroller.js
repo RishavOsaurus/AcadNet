@@ -21,8 +21,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 
-const indexPath = "http://localhost:5500/";
-const dashPath = "http://localhost:5500/";
+const indexPath = "https://crishav.com.np/AcadNet/";
+const dashPath = "https://crishav.com.np/AcadNet/";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
