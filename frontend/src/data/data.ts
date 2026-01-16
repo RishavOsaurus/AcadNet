@@ -71,6 +71,11 @@ export const testimonialsData = [
 ];
 
 export const teamData = [
+   {
+    name: "Rishav Chapagain",
+    role: "Backend Developer",
+    image: './rishav.png',
+  },
   {
     name: "Nishan Paudel",
     role: "Support Frontend Developer",
@@ -86,9 +91,5 @@ export const teamData = [
     role: "Backend Developer",
     image: './anish.jpg',
   },
-  {
-    name: "Rishav Chapagain",
-    role: "Backend Developer",
-    image: './rishav.png',
-  },
+ 
 ];

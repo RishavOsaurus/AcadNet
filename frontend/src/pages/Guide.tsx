@@ -127,7 +127,7 @@ const Guide = () => {
               </div>
             </div>
             <main className="flex-1 bg-gray-50 pt-8 pb-8 px-4 md:px-6 lg:px-8">
-              <div className="max-w-4xl space-y-8 mr-[24rem] ml-auto">
+              <div className="max-w-4xl space-y-8 mr-96 ml-auto">
                 {/* Getting Started Card */}
                 <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg space-y-8">
                   <header>

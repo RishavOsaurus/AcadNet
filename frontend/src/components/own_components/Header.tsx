@@ -74,14 +74,14 @@ export const Header: React.FC = () => {
             <>
               <Link
                 to={"/register"}
-                className="hidden sm:flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#1993e5] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#137abd] transition-colors"
+                className="hidden sm:flex min-w-120 max-w-21 cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#1993e5] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#137abd] transition-colors"
               >
                 <span className="truncate">Sign Up</span>
               </Link>
 
               <Link
                 to={"/login"}
-                className="hidden sm:flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-200 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-300 transition-colors"
+                className="hidden sm:flex min-w-21 max-w-21 cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-200 text-slate-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-300 transition-colors"
               >
                 <span className="truncate">Log In</span>
               </Link>
@@ -92,7 +92,7 @@ export const Header: React.FC = () => {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-[72px] left-0 right-0 bg-white/90 backdrop-blur-2xl shadow-lg z-50 p-4">
+        <div className="lg:hidden absolute top-18 left-0 right-0 bg-white/90 backdrop-blur-2xl shadow-lg z-50 p-4">
           <nav className="flex flex-col space-y-4">
             <Link
               onClick={() => {

@@ -8,7 +8,7 @@
   scroll-behavior: smooth;
  }
  Input{
-  @apply border-1 border-black/50
+  @apply border border-black/50
  }
 Button{
   @apply cursor-pointer
