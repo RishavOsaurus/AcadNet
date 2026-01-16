@@ -330,3 +330,13 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+export const getCsrfToken = (req, res) => {
+  try {
+    const token = req.cookies?.csrfToken || null;
+    return res.status(200).json({ csrfToken: token });
+  } catch (err) {
+    console.log('[getCsrfToken] error', err);
+    return res.status(500).json({ csrfToken: null });
+  }
+};
+

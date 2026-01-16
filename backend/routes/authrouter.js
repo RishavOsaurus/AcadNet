@@ -17,6 +17,7 @@ import {
     oAuthFail,
     deleteUser
 } from "../controllers/authcontroller.js";
+import { getCsrfToken } from "../controllers/authcontroller.js";
 import csrfMiddleware from "../middlewares/csrf.js";
 import authMiddleware from "../middlewares/authmiddleware.js";
 import addUser from "../middlewares/addUsertoReq.js";
@@ -147,6 +148,10 @@ router.get("/failure",oAuthFail)
  *         description: Unauthorized
  */
 router.post("/checkSession", authMiddleware, csrfMiddleware, addUser, sessionChecker);
+
+// Expose csrf token value (reads cookie server-side) so cross-origin frontends can fetch it
+// This endpoint intentionally does NOT require the X-CSRF-Token header.
+router.get('/csrf-token', getCsrfToken);
 
 /**
  * @swagger
