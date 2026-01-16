@@ -23,8 +23,12 @@ import GroupAdmin from "@/pages/GroupAdmin";
 import Settings from "@/pages/Settings";
 import SysAdmin from "@/pages/SysAdmin";
 
-// Hard-coded basename for client router (served under '/acadnet')
-const basename = '/acadnet';
+// Compute basename dynamically (supports GitHub Pages repo pages)
+const basename = ((): string => {
+  if (typeof window === 'undefined') return '/';
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  return parts.length ? '/' + parts[0] : '/';
+})();
 
 export const router = createBrowserRouter([
   {

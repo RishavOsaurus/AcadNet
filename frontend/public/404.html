@@ -7,20 +7,28 @@
     <script>
       // GitHub Pages serves this 404 for unknown paths. Fetch and render the
       // SPA `index.html` so the app can handle the route client-side.
+      // Compute the repository base dynamically so this works for user.github.io/<repo>/
       (function () {
-        const base = '/acadnet';
-        const indexPath = base.replace(/\/$/, '') + '/index.html';
-        fetch(indexPath)
-          .then(function (r) { return r.text(); })
-          .then(function (html) {
-            document.open();
-            document.write(html);
-            document.close();
-          })
-          .catch(function () {
-            // fallback: redirect to base
-            location.replace(base + '/');
-          });
+        try {
+          var parts = location.pathname.split('/').filter(function (p) { return p.length; });
+          var base = parts.length ? ('/' + parts[0]) : '';
+          var indexPath = (base || '') + '/index.html';
+
+          fetch(indexPath)
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+              document.open();
+              document.write(html);
+              document.close();
+            })
+            .catch(function () {
+              // fallback: redirect to detected base (or root)
+              location.replace((base || '/') + '/');
+            });
+        } catch (e) {
+          // fallback: reload to root
+          location.replace('/');
+        }
       })();
     </script>
   </head>
