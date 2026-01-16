@@ -31,7 +31,7 @@ if (githubClientID && githubClientSecret) {
       {
         clientID: githubClientID,
         clientSecret: githubClientSecret,
-        callbackURL: "http://localhost:3000/api/v1/auth/github/callback",
+        callbackURL: "https://acad-net.vercel.app/api/v1/auth/github/callback",
         scope: ["user:email"],
         userAgent: "RishavOp"
       },
