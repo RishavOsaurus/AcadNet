@@ -34,7 +34,7 @@ function cookieOptions(req, { httpOnly = true, maxAge = undefined, csrf = false 
   const opts = {
     httpOnly: httpOnly,
     sameSite: 'none',
-    secure: true,
+    secure: isProd, // only mark Secure in production so localhost HTTP still works
   };
   if (typeof maxAge === 'number') opts.maxAge = maxAge;
   // CSRF token is readable by JS, so httpOnly=false when csrf flag is passed
@@ -333,6 +333,7 @@ export const deleteUser = async (req, res) => {
 export const getCsrfToken = (req, res) => {
   try {
     const token = req.cookies?.csrfToken || null;
+    console.log('[getCsrfToken] origin=', req.headers.origin || req.ip, 'cookies=', Object.keys(req.cookies||{}), 'tokenPresent=', !!token);
     return res.status(200).json({ csrfToken: token });
   } catch (err) {
     console.log('[getCsrfToken] error', err);
