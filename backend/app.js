@@ -26,6 +26,7 @@ const defaultOrigins = [
   "http://127.0.0.1:3000",
   "https://acad-net.vercel.app",
   "https://crishav.com.np",
+  "http://crishav.com.np",
 ];
 const allowedOrigins = (process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()) : defaultOrigins);
 const PORT = process.env.BACKEND_PORT || 3000;
