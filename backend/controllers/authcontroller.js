@@ -34,11 +34,15 @@ function cookieOptions(req, { httpOnly = true, maxAge = undefined, csrf = false 
   const opts = {
     httpOnly: httpOnly,
     sameSite: 'none',
-    secure: isProd, // only mark Secure in production so localhost HTTP still works
+    secure: true, // Always use secure for cross-origin cookies to work with SameSite=None
   };
   if (typeof maxAge === 'number') opts.maxAge = maxAge;
   // CSRF token is readable by JS, so httpOnly=false when csrf flag is passed
   if (csrf) opts.httpOnly = false;
+  
+  // Log cookie options for debugging cross-origin issues
+  console.log('[cookieOptions]', { httpOnly: opts.httpOnly, sameSite: opts.sameSite, secure: opts.secure, maxAge: opts.maxAge, origin: req.headers.origin });
+  
   return opts;
 }
 
@@ -252,6 +256,7 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, cookieOptions(req, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }));
     res.cookie("csrfToken", csrfToken, cookieOptions(req, { httpOnly: false, maxAge: 15 * 60 * 1000, csrf: true }));
 
+    console.log('[login] Set cookies for origin=', req.headers.origin, 'Check Set-Cookie headers in response');
     jsonRes(res, 200, true, "Login Success");
   } catch (err) {
     if (
