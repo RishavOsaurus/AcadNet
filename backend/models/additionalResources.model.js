@@ -38,6 +38,11 @@ const AdditionalResource = sequelize.define(
    type: DataTypes.STRING,
    allowNull: false,
   },
+  cloudinaryPublicId: {
+   type: DataTypes.STRING,
+   allowNull: true,
+   comment: "Cloudinary public_id for file deletion"
+  },
   fileType: {
     type: DataTypes.STRING,
     allowNull: false

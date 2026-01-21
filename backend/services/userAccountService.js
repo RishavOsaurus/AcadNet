@@ -10,7 +10,7 @@ import Thread from '../models/thread.model.js';
 import Reply from '../models/reply.model.js';
 import ReplyLike from '../models/replyLike.model.js';
 import sequelize from '../config/database.js';
-import fs from 'fs';
+import cloudinary from '../config/cloudinary.js';
 import path from 'path';
 import throwWithCode from '../utils/errorthrow.js';
 import { Op } from 'sequelize';
@@ -24,11 +24,15 @@ export const deleteUserAccount = async (userId) => {
             throwWithCode('User not found.', 404);
         }
 
-        // Delete user's resources and their physical files
+        // Delete user's resources from Cloudinary and database
         const resources = await AdditionalResource.findAll({ where: { uploadedBy: userId }, transaction });
         for (const resource of resources) {
-            if (fs.existsSync(resource.filePath)) {
-                fs.unlinkSync(resource.filePath);
+            if (resource.cloudinaryPublicId) {
+                try {
+                    await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+                } catch (err) {
+                    console.error(`Error deleting file from Cloudinary:`, err);
+                }
             }
             await resource.destroy({ transaction });
         }
@@ -41,8 +45,12 @@ export const deleteUserAccount = async (userId) => {
         for (const group of createdGroups) {
             const groupResources = await AdditionalResource.findAll({ where: { studyGroupId: group.id }, transaction });
             for (const resource of groupResources) {
-                if (fs.existsSync(resource.filePath)) {
-                    fs.unlinkSync(resource.filePath);
+                if (resource.cloudinaryPublicId) {
+                    try {
+                        await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+                    } catch (err) {
+                        console.error(`Error deleting file from Cloudinary:`, err);
+                    }
                 }
                 await resource.destroy({ transaction });
             }

@@ -1,4 +1,5 @@
 import { UserModel, AdditionalResource, StudyGroup, Thread, Reply, Membership, Forum, UserReport } from "../models/index.model.js";
+import cloudinary from "../config/cloudinary.js";
 
 export const getDashboard = (user) => {
   if (user.role === "admin") {
@@ -27,6 +28,17 @@ export const deleteUserAndDataService = async (userId) => {
   try {
     const groups = await StudyGroup.findAll({ where: { creatorId: userId } });
     for (const group of groups) {
+      // Delete group resources from Cloudinary
+      const groupResources = await AdditionalResource.findAll({ where: { studyGroupId: group.id } });
+      for (const resource of groupResources) {
+        if (resource.cloudinaryPublicId) {
+          try {
+            await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+          } catch (err) {
+            console.error(`Error deleting file from Cloudinary:`, err);
+          }
+        }
+      }
       await AdditionalResource.destroy({ where: { studyGroupId: group.id } });
       await Membership.destroy({ where: { studyGroupId: group.id } });
       await UserReport.destroy({ where: { studyGroupId: group.id } });
@@ -37,6 +49,17 @@ export const deleteUserAndDataService = async (userId) => {
         await forum.destroy();
       }
       await group.destroy();
+    }
+    // Delete user's uploaded resources from Cloudinary
+    const userResources = await AdditionalResource.findAll({ where: { uploadedBy: userId } });
+    for (const resource of userResources) {
+      if (resource.cloudinaryPublicId) {
+        try {
+          await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+        } catch (err) {
+          console.error(`Error deleting file from Cloudinary:`, err);
+        }
+      }
     }
     await AdditionalResource.destroy({ where: { uploadedBy: userId } });
     await Thread.destroy({ where: { authorId: userId } });
@@ -79,6 +102,17 @@ export const deleteGroupAndDataService = async (groupId) => {
     return "notfound";
   }
   try {
+    // Delete all resources from Cloudinary
+    const groupResources = await AdditionalResource.findAll({ where: { studyGroupId: groupId } });
+    for (const resource of groupResources) {
+      if (resource.cloudinaryPublicId) {
+        try {
+          await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+        } catch (err) {
+          console.error(`Error deleting file from Cloudinary:`, err);
+        }
+      }
+    }
     await AdditionalResource.destroy({ where: { studyGroupId: groupId } });
     await Membership.destroy({ where: { studyGroupId: groupId } });
     await UserReport.destroy({ where: { studyGroupId: groupId } });

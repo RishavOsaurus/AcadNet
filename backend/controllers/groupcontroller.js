@@ -1,7 +1,6 @@
 import { getAllGroups, createStudyGroupWithSyllabus, getGroupOverviewList, getGroupDetailsByCode, getGroupDetailsById, getGroupOverviewByCode, likeResource, dislikeResource, getResourceLikeStatus, getGroupAdditionalResources, addAdditionalResources, checkUserProfileCompleteness, reportUserInGroup as reportUserInGroupService, getGroupReports, getPendingResources, approveResource, rejectResource, editGroupSyllabus, deleteApprovedResource, reportResource, editGroupDetails, deleteGroupByCreator } from "../services/groupservices.js";
 import * as groupServices from "../services/groupservices.js";
 import jsonRes from "../utils/response.js"
-import fs from 'fs'
 
 export const getGroups = async (req,res)=>{
     try{
@@ -82,16 +81,8 @@ export const createGroup = async (req, res) => {
    group: newGroup,
   });
  } catch (err) {
-
-  if (files) {
-   files.forEach((file) => {
-    fs.unlink(file.path, (unlinkErr) => {
-     if (unlinkErr) {
-      console.error("Error deleting temp file:", unlinkErr);
-     }
-    });
-   });
-  }
+  // No need to clean up files - Cloudinary handles them
+  // The service layer will clean up Cloudinary uploads if there's an error
   console.error("Error in createGroup controller:", err);
   jsonRes(
    res,
@@ -287,17 +278,8 @@ export const addGroupResources = async (req, res) => {
     
     jsonRes(res, 201, true, result);
   } catch (err) {
-    // Clean up uploaded files if there's an error
-    if (req.files) {
-      req.files.forEach((file) => {
-        fs.unlink(file.path, (unlinkErr) => {
-          if (unlinkErr) {
-            console.error("Error deleting temp file:", unlinkErr);
-          }
-        });
-      });
-    }
-    
+    // No need to clean up files - Cloudinary handles them
+    // The service layer will clean up Cloudinary uploads if there's an error
     jsonRes(res, err.code || 500, false, err.message || "Failed to add additional resources.");
   }
 };

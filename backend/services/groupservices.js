@@ -9,7 +9,7 @@ import Syllabus from "../models/syallabus.model.js";
 import Topic from "../models/topics.model.js";
 import SubTopic from "../models/subtopics.model.js";
 import Forum from "../models/forum.model.js";
-import fs from "fs";
+import cloudinary from "../config/cloudinary.js";
 import path from "path";
 import Membership from "../models/membership.model.js";
 
@@ -262,10 +262,6 @@ export const createStudyGroupWithSyllabus = async (
 
     const createdResources = [];
     if (additionalResourceFiles && additionalResourceFiles.length > 0) {
-      const groupResourcePath = `resources/${newGroup.id}_resources`;
-      fs.mkdirSync(groupResourcePath, { recursive: true });
-
-      let fileCounter = 1;
       for (const file of additionalResourceFiles) {
         const ext = path.extname(file.originalname).toLowerCase();
         let fileType = "other";
@@ -278,23 +274,20 @@ export const createStudyGroupWithSyllabus = async (
         else if ([".mp3", ".wav", ".aac", ".ogg", ".flac"].includes(ext)) fileType = "audio";
         else if ([".txt"].includes(ext)) fileType = "text";
 
-        const newFileName = `${fileCounter}${ext}`;
-        const newFilePath = path.join(groupResourcePath, newFileName);
-        fs.renameSync(file.path, newFilePath);
-        createdResourcesForCleanup.push(newFilePath);
-
+        // Use Cloudinary URL and public_id from uploaded file
         const newResource = await AdditionalResource.create(
           {
             studyGroupId: newGroup.id,
-            filePath: newFilePath,
+            filePath: file.path, // Cloudinary URL
             fileType: fileType,
             uploadedBy: creatorId,
-            status: 'approved' // Creator's resources are auto-approved
+            status: 'approved', // Creator's resources are auto-approved
+            cloudinaryPublicId: file.filename // Store Cloudinary public_id for deletion
           },
           { transaction }
         );
         createdResources.push(newResource.toJSON());
-        fileCounter++;
+        createdResourcesForCleanup.push(file.filename); // Store public_id for cleanup
       }
     }
 
@@ -359,12 +352,12 @@ export const createStudyGroupWithSyllabus = async (
       await transaction.rollback();
     }
 
-    for (const filePath of createdResourcesForCleanup) {
-      if (fs.existsSync(filePath)) {
-        fs.unlink(filePath, (unlinkErr) => {
-          if (unlinkErr)
-            console.error("Error cleaning up orphaned file:", unlinkErr);
-        });
+    // Clean up Cloudinary uploads if transaction fails
+    for (const publicId of createdResourcesForCleanup) {
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (unlinkErr) {
+        console.error("Error cleaning up orphaned Cloudinary file:", unlinkErr);
       }
     }
 
@@ -1007,12 +1000,13 @@ export const addAdditionalResources = async (groupCode, userId, files, topicId =
 
       const resourceData = {
         studyGroupId: group.id,
-        filePath: file.path,
+        filePath: file.path, // Cloudinary URL
         fileType: file.mimetype,
         topicId: topicId || null,
         subTopicId: subTopicId || null,
         uploadedBy: userId,
-        status: 'pending' // New uploads need approval
+        status: 'pending', // New uploads need approval
+        cloudinaryPublicId: file.filename // Store Cloudinary public_id for deletion
       };
 
       const newResource = await AdditionalResource.create(resourceData, { transaction });
@@ -1040,28 +1034,28 @@ export const addAdditionalResources = async (groupCode, userId, files, topicId =
       await transaction.rollback();
     }
 
-    // Clean up uploaded files if database operation failed
-    createdResourcesForCleanup.forEach((resource) => {
-      if (resource.filePath && fs.existsSync(resource.filePath)) {
-        fs.unlink(resource.filePath, (unlinkErr) => {
-          if (unlinkErr) {
-            console.error("Error deleting temp file:", unlinkErr);
-          }
-        });
+    // Clean up Cloudinary uploads if database operation failed
+    for (const resource of createdResourcesForCleanup) {
+      if (resource.cloudinaryPublicId) {
+        try {
+          await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+        } catch (unlinkErr) {
+          console.error("Error deleting Cloudinary file:", unlinkErr);
+        }
       }
-    });
+    }
 
     // Also clean up files that weren't saved to database
     if (files) {
-      files.forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlink(file.path, (unlinkErr) => {
-            if (unlinkErr) {
-              console.error("Error deleting temp file:", unlinkErr);
-            }
-          });
+      for (const file of files) {
+        if (file.filename) {
+          try {
+            await cloudinary.uploader.destroy(file.filename);
+          } catch (unlinkErr) {
+            console.error("Error deleting Cloudinary file:", unlinkErr);
+          }
         }
-      });
+      }
     }
 
     throw error;
@@ -1418,9 +1412,14 @@ export const rejectResource = async (adminUserId, resourceId, groupCode, reason 
       throwWithCode("Resource not found or already processed.", 404);
     }
 
-    // Delete the physical file
-    if (fs.existsSync(resource.filePath)) {
-      fs.unlinkSync(resource.filePath);
+    // Delete from Cloudinary
+    if (resource.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+      } catch (err) {
+        console.error("Error deleting file from Cloudinary:", err);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
     }
 
     // Delete the resource record
@@ -1626,9 +1625,14 @@ export const deleteApprovedResource = async (adminUserId, groupCode, resourceId)
       throwWithCode("Resource not found or not approved.", 404);
     }
 
-    // Delete the physical file
-    if (fs.existsSync(resource.filePath)) {
-      fs.unlinkSync(resource.filePath);
+    // Delete from Cloudinary
+    if (resource.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
+      } catch (err) {
+        console.error("Error deleting file from Cloudinary:", err);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
     }
 
     // Delete the resource record
@@ -1856,19 +1860,19 @@ export const deleteGroupByCreator = async (creatorId, groupCode) => {
       throwWithCode("Only the group creator can delete the group.", 403);
     }
 
-    // Get all resources for this group and delete physical files
+    // Get all resources for this group and delete from Cloudinary
     const groupResources = await AdditionalResource.findAll({
       where: { studyGroupId: group.id },
       transaction
     });
 
     for (const resource of groupResources) {
-      if (resource.filePath && fs.existsSync(resource.filePath)) {
+      if (resource.cloudinaryPublicId) {
         try {
-          fs.unlinkSync(resource.filePath);
+          await cloudinary.uploader.destroy(resource.cloudinaryPublicId);
         } catch (fileError) {
-          console.error(`Error deleting file ${resource.filePath}:`, fileError);
-          // Continue with deletion even if file removal fails
+          console.error(`Error deleting file from Cloudinary ${resource.cloudinaryPublicId}:`, fileError);
+          // Continue with deletion even if Cloudinary removal fails
         }
       }
     }
