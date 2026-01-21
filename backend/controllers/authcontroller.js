@@ -114,6 +114,19 @@ export const refreshAccessToken = async (req, res) => {
     res.cookie("refreshToken", refreshToken, cookieOptions(req, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 }));
     res.cookie("csrfToken", csrfToken, cookieOptions(req, { httpOnly: false, maxAge: 7 * 24 * 60 * 60 * 1000, csrf: true }));
 
+    // Log cookies and masked tokens for debugging why browser may drop them
+    try {
+      const mask = (s) => {
+        if (!s) return '<none>';
+        return s.length > 12 ? `${s.slice(0,6)}...${s.slice(-6)}` : s;
+      };
+      console.log('[refreshAccessToken] new tokens', { access: mask(accessToken), refresh: mask(refreshToken), csrf: mask(csrfToken) });
+      const setCookie = res.getHeader && res.getHeader('Set-Cookie');
+      console.log('[refreshAccessToken] Set-Cookie headers to be sent=', setCookie);
+    } catch (e) {
+      console.log('[refreshAccessToken] logging failed', e);
+    }
+
     return jsonRes(res, 200, true, "Token refreshed");
   } catch (err) {
     console.log(err);
@@ -149,9 +162,9 @@ export const logoutAllCont = async (req, res) => {
     await logoutAll(userId);
 
     // Clear cookies
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.clearCookie("csrfToken");
+    res.clearCookie("accessToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("refreshToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("csrfToken", cookieOptions(req, { httpOnly: false, csrf: true }));
 
     return jsonRes(res, 200, true, "Logged out from all sessions");
   } catch (err) {
@@ -319,9 +332,9 @@ export const deleteUser = async (req, res) => {
     const result = await deleteUserAccount(userid);
     
     // Clear cookies on successful deletion
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.clearCookie("csrfToken");
+    res.clearCookie("accessToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("refreshToken", cookieOptions(req, { httpOnly: true }));
+    res.clearCookie("csrfToken", cookieOptions(req, { httpOnly: false, csrf: true }));
 
     return jsonRes(res, 200, true, result.message || "Account and all associated data deleted successfully");
   } catch (err) {
