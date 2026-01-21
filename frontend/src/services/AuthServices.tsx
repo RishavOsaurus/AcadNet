@@ -1,16 +1,8 @@
-import apiClient from "@/lib/apiClient";
+import apiClient, { ensureCsrfToken } from "@/lib/apiClient";
 
 type ApiResult = { success?: boolean; message?: string; [key: string]: unknown };
 
-async function ensureCsrfToken(): Promise<void> {
-  if (apiClient.defaults.headers.common['X-CSRF-Token']) return;
-  // Use fetch directly to avoid any axios-specific interception side-effects
-  const resp = await fetch(`${apiClient.defaults.baseURL || ''}auth/csrf-token`, { credentials: 'include' });
-  if (!resp.ok) return;
-  const data = await resp.json();
-  const token = data?.csrfToken as string | undefined;
-  if (token) apiClient.defaults.headers.common['X-CSRF-Token'] = token;
-}
+// uses ensureCsrfToken from apiClient
 
 export const loginAPI = async (email: string, password: string): Promise<{ data: ApiResult; status: number }> => {
   const response = await apiClient.post<ApiResult>("auth/login", { email, password });

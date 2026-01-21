@@ -37,4 +37,18 @@ export async function initApiClient() {
   }
 }
 
+// Ensure CSRF token is present on the axios client. Safe to call multiple times.
+export async function ensureCsrfToken(): Promise<void> {
+  if (apiClient.defaults.headers.common['X-CSRF-Token']) return;
+  try {
+    const res = await fetch(`${BASE_URL}auth/csrf-token`, { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const token = data?.csrfToken;
+    if (token) apiClient.defaults.headers.common['X-CSRF-Token'] = token;
+  } catch (err) {
+    // do not throw - keep silent
+  }
+}
+
 export default apiClient;
