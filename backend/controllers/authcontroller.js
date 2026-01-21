@@ -332,7 +332,17 @@ export const deleteUser = async (req, res) => {
 
 export const getCsrfToken = (req, res) => {
   try {
-    const token = req.cookies?.csrfToken || null;
+    let token = req.cookies?.csrfToken || null;
+    // If no CSRF cookie present, create one so cross-origin frontends can obtain a token
+    if (!token) {
+      try {
+        token = randomBytes(16).toString('hex');
+        res.cookie("csrfToken", token, cookieOptions(req, { httpOnly: false, maxAge: 15 * 60 * 1000, csrf: true }));
+      } catch (e) {
+        console.log('[getCsrfToken] failed to generate cookie', e);
+      }
+    }
+
     console.log('[getCsrfToken] origin=', req.headers.origin || req.ip, 'cookies=', Object.keys(req.cookies||{}), 'tokenPresent=', !!token);
     return res.status(200).json({ csrfToken: token });
   } catch (err) {
